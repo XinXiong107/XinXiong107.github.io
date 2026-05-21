@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>我的个人主页</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f13;
+      --bg2: #1a1a24;
+      --bg3: #22222f;
+      --accent: #7c6bff;
+      --accent2: #a78bfa;
+      --text: #e8e8f0;
+      --text2: #9999b0;
+      --border: rgba(124,107,255,0.2);
+      --radius: 14px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 5%;
+      height: 64px;
+      background: rgba(15,15,19,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent2);
+      letter-spacing: 1px;
+    }
+    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-links a {
+      color: var(--text2);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--accent2); }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 80px 5% 60px;
+      position: relative;
+    }
+    .hero-glow {
+      position: absolute;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(124,107,255,0.12) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .avatar {
+      width: 110px; height: 110px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 44px;
+      margin-bottom: 28px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero h1 {
+      font-size: clamp(36px, 6vw, 72px);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #fff 30%, var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative; z-index: 1;
+    }
+    .hero p {
+      font-size: clamp(15px, 2vw, 19px);
+      color: var(--text2);
+      max-width: 560px;
+      margin-bottom: 40px;
+      position: relative; z-index: 1;
+    }
+    .hero-btns { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; position: relative; z-index: 1; }
+    .btn {
+      padding: 12px 28px;
+      border-radius: 50px;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform .18s, box-shadow .18s;
+      cursor: pointer;
+      border: none;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 4px 24px rgba(124,107,255,0.35);
+    }
+    .btn-primary:hover { box-shadow: 0 8px 32px rgba(124,107,255,0.5); }
+    .btn-outline {
+      background: transparent;
+      color: var(--text2);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover { border-color: var(--accent2); color: var(--accent2); }
+
+    /* ── Section base ── */
+    section { padding: 90px 5%; }
+    .section-tag {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .section-desc {
+      color: var(--text2);
+      font-size: 16px;
+      max-width: 580px;
+      margin-bottom: 48px;
+    }
+
+    /* ── About ── */
+    #about { background: var(--bg2); }
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+      max-width: 1000px;
+    }
+    .about-text p { color: var(--text2); margin-bottom: 14px; line-height: 1.8; }
+    .skills-list {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      margin-top: 24px;
+    }
+    .skill-chip {
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--accent2);
+    }
+    .about-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .stat-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      text-align: center;
+    }
+    .stat-card .number {
+      font-size: 38px;
+      font-weight: 800;
+      color: var(--accent2);
+      display: block;
+    }
+    .stat-card .label {
+      font-size: 13px;
+      color: var(--text2);
+      margin-top: 4px;
+    }
+
+    /* ── Games ── */
+    #games { background: var(--bg); }
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+    }
+    .game-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: transform .2s, border-color .2s;
+    }
+    .game-card:hover { transform: translateY(-4px); border-color: var(--accent2); }
+    .game-thumb {
+      width: 100%; height: 180px;
+      background: linear-gradient(135deg, var(--bg3), var(--bg));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 56px;
+    }
+    .game-info { padding: 20px; }
+    .game-info h3 { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+    .game-info p { font-size: 14px; color: var(--text2); margin-bottom: 16px; }
+    .tag {
+      display: inline-block;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      background: rgba(124,107,255,0.15);
+      color: var(--accent2);
+      margin-right: 6px;
+    }
+
+    /* ── Contact ── */
+    #contact { background: var(--bg2); }
+    .contact-inner {
+      max-width: 560px;
+    }
+    .contact-links {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 32px;
+    }
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 20px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text2);
+      text-decoration: none;
+      font-size: 14px;
+      transition: border-color .2s, color .2s;
+    }
+    .contact-item:hover { border-color: var(--accent2); color: var(--accent2); }
+    .contact-icon { font-size: 22px; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 32px;
+      color: var(--text2);
+      font-size: 13px;
+      border-top: 1px solid var(--border);
+    }
+    footer span { color: var(--accent2); }
+
+    /* ── Responsive ── */
+    @media (max-width: 700px) {
+      .about-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <div class="nav-logo">✦ 你的名字</div>
+    <ul class="nav-links">
+      <li><a href="#about">关于我</a></li>
+      <li><a href="#games">我的游戏</a></li>
+      <li><a href="#contact">联系我</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero" id="home">
+    <div class="hero-glow"></div>
+    <div class="avatar">🎮</div>
+    <h1>你好，我是<br>你的名字</h1>
+    <p>一个热爱做小游戏的独立开发者 / 在校学生 / 创意爱好者。这里是我分享作品的地方。</p>
+    <div class="hero-btns">
+      <a href="#games" class="btn btn-primary">查看我的游戏</a>
+      <a href="#about" class="btn btn-outline">了解更多</a>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="about">
+    <div class="about-grid">
+      <div class="about-text">
+        <div class="section-tag">About me</div>
+        <h2 class="section-title">关于我</h2>
+        <p>我是一个对游戏开发充满热情的独立创作者，喜欢把脑子里的奇思妙想做成可以玩的东西。</p>
+        <p>目前专注于用 HTML5 + JavaScript 制作小游戏，探索各种有趣的玩法机制。</p>
+        <p>每一款游戏都是我送给玩家的一份小礼物。</p>
+        <div class="skills-list">
+          <span class="skill-chip">HTML5</span>
+          <span class="skill-chip">JavaScript</span>
+          <span class="skill-chip">游戏设计</span>
+          <span class="skill-chip">像素艺术</span>
+          <span class="skill-chip">Godot</span>
+        </div>
+      </div>
+      <div class="about-stats">
+        <div class="stat-card">
+          <span class="number">5</span>
+          <div class="label">完成的游戏</div>
+        </div>
+        <div class="stat-card">
+          <span class="number">2</span>
+          <div class="label">开发中项目</div>
+        </div>
+        <div class="stat-card">
+          <span class="number">∞</span>
+          <div class="label">对游戏的热情</div>
+        </div>
+        <div class="stat-card">
+          <span class="number">1</span>
+          <div class="label">属于自己的网站</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Games -->
+  <section id="games">
+    <div class="section-tag">My Games</div>
+    <h2 class="section-title">我的游戏</h2>
+    <p class="section-desc">这里是我做的小游戏，点进去就能玩。以后会持续更新。</p>
+    <div class="games-grid">
+
+      <div class="game-card">
+        <div class="game-thumb">🕹️</div>
+        <div class="game-info">
+          <h3>游戏名称 1</h3>
+          <p>一句话介绍这个游戏是什么，玩法是什么，让访客想点进去玩。</p>
+          <span class="tag">益智</span>
+          <span class="tag">HTML5</span>
+        </div>
+      </div>
+
+      <div class="game-card">
+        <div class="game-thumb">🎲</div>
+        <div class="game-info">
+          <h3>游戏名称 2</h3>
+          <p>这里写第二个游戏的简介，可以描述背景故事或核心玩法。</p>
+          <span class="tag">动作</span>
+          <span class="tag">休闲</span>
+        </div>
+      </div>
+
+      <div class="game-card">
+        <div class="game-thumb">🚀</div>
+        <div class="game-info">
+          <h3>游戏名称 3</h3>
+          <p>第三个游戏的简介，目前还在开发中，敬请期待。</p>
+          <span class="tag">即将上线</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact">
+    <div class="contact-inner">
+      <div class="section-tag">Contact</div>
+      <h2 class="section-title">联系我</h2>
+      <p class="section-desc">如果你玩了我的游戏，有任何反馈或者想合作，欢迎联系我。</p>
+      <div class="contact-links">
+        <a class="contact-item" href="mailto:your@email.com">
+          <span class="contact-icon">📧</span>
+          your@email.com
+        </a>
+        <a class="contact-item" href="https://github.com/yourusername" target="_blank">
+          <span class="contact-icon">🐙</span>
+          github.com/yourusername
+        </a>
+        <a class="contact-item" href="#">
+          <span class="contact-icon">💬</span>
+          其他联系方式（微信 / B站 / 微博等）
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>用 <span>♥</span> 亲手做的 · © 2026 你的名字</p>
+  </footer>
+
+</body>
+</html>
