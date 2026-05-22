@@ -67,8 +67,6 @@
   <div class="row">
     <button class="btn" id="startBtn" style="background:linear-gradient(135deg,#00e0ff,#00ffa3);color:black;font-weight:900;">开始游戏</button>
     <button class="btn" id="musicStartBtn" style="background:linear-gradient(135deg,#ffd400,#ff9900);color:black;font-weight:900;">&#24320;&#21551;&#38899;&#20048;</button>
-
-    <button class="btn" id="qualityBtn">画质：高</button>
     <button class="btn" id="muteBtn">声音：开</button>
     <button class="btn" id="clearLB">清空榜单</button>
   </div>
@@ -433,7 +431,7 @@ void main(){
   const spdEl=document.getElementById('spd'), distEl=document.getElementById('dist'), scoreEl=document.getElementById('score'), coinsEl=document.getElementById('coins'), hpEl=document.getElementById('hp');
   const pauseBtn=document.getElementById('pauseBtn'), resetBtn=document.getElementById('resetBtn');
   const startBtn=document.getElementById('startBtn'), startHint=document.getElementById('startHint');
-  const qualityBtn=document.getElementById('qualityBtn'), muteBtn=document.getElementById('muteBtn'), musicStartBtn=document.getElementById('musicStartBtn'), clearLB=document.getElementById('clearLB');
+  const muteBtn=document.getElementById('muteBtn'), musicStartBtn=document.getElementById('musicStartBtn'), clearLB=document.getElementById('clearLB');
   const leftBtn=document.getElementById('leftBtn'), rightBtn=document.getElementById('rightBtn'), accBtn=document.getElementById('accBtn'), brkBtn=document.getElementById('brkBtn');
   const pauseMenu=document.getElementById('pauseMenu'), resumeBtn=document.getElementById('resumeBtn'), quitBtn=document.getElementById('quitBtn');
   const gameover=document.getElementById('gameover'), goDist=document.getElementById('goDist'), goScore=document.getElementById('goScore'), goTopSpd=document.getElementById('goTopSpd'), goCoins=document.getElementById('goCoins');
@@ -500,12 +498,6 @@ void main(){
   // 开始/暂停/结束
   pauseBtn.addEventListener('click',()=>togglePause());
   resetBtn.addEventListener('click',()=>resetGame());
-  qualityBtn.addEventListener('click',()=>{
-    if (DPR_CAP>1.9){ DPR_CAP=1.2; qualityBtn.textContent='画质：中'; }
-    else if (DPR_CAP>1.1){ DPR_CAP=1.0; qualityBtn.textContent='画质：低'; }
-    else { DPR_CAP=2.0; qualityBtn.textContent='画质：高'; }
-    resize();
-  });
   startBtn.addEventListener('click', async()=>{
     music.start.stop();
     await audio.init();
