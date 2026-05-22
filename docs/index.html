@@ -66,6 +66,8 @@
   <p>→/D 往右，←/A 往左。W/↑ 加速，S/↓ 刹车，空格暂停。</p>
   <div class="row">
     <button class="btn" id="startBtn" style="background:linear-gradient(135deg,#00e0ff,#00ffa3);color:black;font-weight:900;">开始游戏</button>
+    <button class="btn" id="musicStartBtn" style="background:linear-gradient(135deg,#ffd400,#ff9900);color:black;font-weight:900;">&#24320;&#21551;&#38899;&#20048;</button>
+
     <button class="btn" id="qualityBtn">画质：高</button>
     <button class="btn" id="muteBtn">声音：开</button>
     <button class="btn" id="clearLB">清空榜单</button>
@@ -431,7 +433,7 @@ void main(){
   const spdEl=document.getElementById('spd'), distEl=document.getElementById('dist'), scoreEl=document.getElementById('score'), coinsEl=document.getElementById('coins'), hpEl=document.getElementById('hp');
   const pauseBtn=document.getElementById('pauseBtn'), resetBtn=document.getElementById('resetBtn');
   const startBtn=document.getElementById('startBtn'), startHint=document.getElementById('startHint');
-  const qualityBtn=document.getElementById('qualityBtn'), muteBtn=document.getElementById('muteBtn'), clearLB=document.getElementById('clearLB');
+  const qualityBtn=document.getElementById('qualityBtn'), muteBtn=document.getElementById('muteBtn'), musicStartBtn=document.getElementById('musicStartBtn'), clearLB=document.getElementById('clearLB');
   const leftBtn=document.getElementById('leftBtn'), rightBtn=document.getElementById('rightBtn'), accBtn=document.getElementById('accBtn'), brkBtn=document.getElementById('brkBtn');
   const pauseMenu=document.getElementById('pauseMenu'), resumeBtn=document.getElementById('resumeBtn'), quitBtn=document.getElementById('quitBtn');
   const gameover=document.getElementById('gameover'), goDist=document.getElementById('goDist'), goScore=document.getElementById('goScore'), goTopSpd=document.getElementById('goTopSpd'), goCoins=document.getElementById('goCoins');
@@ -480,14 +482,19 @@ void main(){
     if (e.code==='ArrowDown'||e.code==='KeyS') input.brake=false;
   });
 
-  // 音乐按钮
+  // Music controls
   let audioEnabled=true;
   function syncAudioEnabled(){ audio.setEnabled(audioEnabled); music.start.setEnabled(audioEnabled); music.race.setEnabled(audioEnabled); }
+  musicStartBtn.addEventListener('click',()=>{
+    if(!audioEnabled){ audioEnabled=true; syncAudioEnabled(); muteBtn.textContent='\u58f0\u97f3\uff1a\u5f00'; }
+    playStartMusic(true);
+    musicStartBtn.textContent='\u97f3\u4e50\u5df2\u5f00\u542f';
+  });
   muteBtn.addEventListener('click',()=>{
     audioEnabled=!audioEnabled;
     syncAudioEnabled();
-    if(audioEnabled){ if(running&&!paused) playRaceMusic(); else playStartMusic(); }
-    muteBtn.textContent='声音：'+(audioEnabled?'开':'关');
+    if(audioEnabled){ if(running&&!paused) playRaceMusic(); else playStartMusic(); musicStartBtn.textContent='\u97f3\u4e50\u5df2\u5f00\u542f'; }
+    muteBtn.textContent='\u58f0\u97f3\uff1a'+(audioEnabled?'\u5f00':'\u5173');
   });
 
   // 开始/暂停/结束
@@ -751,7 +758,7 @@ void main(){
   }
 
   // 启动
-  const unlockStartMusic=()=>playStartMusic();
+  const unlockStartMusic=()=>{ playStartMusic(); if(audioEnabled) musicStartBtn.textContent='\u97f3\u4e50\u5df2\u5f00\u542f'; };
   window.addEventListener('pointerdown', unlockStartMusic, {once:true});
   window.addEventListener('keydown', unlockStartMusic, {once:true});
   renderLB(); resize(); draw();
