@@ -543,68 +543,6 @@ void main(){
     maintainCityStrips(camZ);
   }
 
-  // 里程碑
-  const mileMesh = buildAgg([
-    a=>addBox(a, 3.0, 0.2, 0.6, [0.85,0.88,0.92], 0,0.1,0),
-    a=>addBox(a, 0.25, 2.2, 0.25, [0.75,0.75,0.78], 0,1.1,0),
-    a=>addBox(a, 2.6, 1.2, 0.2, [1.0,0.98,0.92], 0,2.1,0.1),
-  ]);
-
-  const DIGITS={
-    '0':['abcfed'], '1':['bc'], '2':['abged'], '3':['abgcd'], '4':['fgbc'],
-    '5':['afgcd'], '6':['afgecd'], '7':['abc'], '8':['abcdefg'], '9':['abfgcd'],
-    'm':['efbcg']
-  };
-  const digitSegMesh=buildAgg([a=>addBox(a,1,1,1,[0.06,0.08,0.10])]);
-  const SEG={
-    a:[0,0.62,0,0.42,0.08], b:[0.34,0.32,0,0.08,0.36], c:[0.34,-0.32,0,0.08,0.36],
-    d:[0,-0.62,0,0.42,0.08], e:[-0.34,-0.32,0,0.08,0.36], f:[-0.34,0.32,0,0.08,0.36],
-    g:[0,0,0,0.42,0.08]
-  };
-  function drawMileText(value, baseMatrix){
-    const text=String(value)+'m';
-    const scale=0.42;
-    const spacing=0.42;
-    const total=(text.length-1)*spacing;
-    gl.uniform1f(uni.uUnlit,1.0); gl.uniform1f(uni.uAlpha,1.0); gl.uniform1f(uni.uRoadMode,0.0); gl.uniform1f(uni.uDash,0.0);
-    for(let i=0;i<text.length;i++){
-      const chars=DIGITS[text[i]]||[];
-      const segs=(chars[0]||'').split('');
-      const ox=(i*spacing-total/2);
-      for(const key of segs){
-        const s=SEG[key]; if(!s) continue;
-        let m=baseMatrix;
-        m=App.Mat4.translate(m,[(ox+s[0]*scale), 2.12+s[1]*scale, 0.23]);
-        m=App.Mat4.scale3(m, s[3]*scale, s[4]*scale, 0.035);
-        gl.uniformMatrix4fv(uni.uModel,false,m); gl.uniformMatrix3fv(uni.uNormalMat,false, App.Mat4.normalFromMat4(m));
-        digitSegMesh.bind(); digitSegMesh.draw();
-      }
-    }
-  }
-
-  let nextMile=500, mileSide=1;
-  const milePosts=[];
-  function ensureMilePosts(camZ){
-    const horizon = camZ + 1500;
-    while(nextMile <= horizon){
-      const z = nextMile;
-      const x = mileSide*(ROAD_HALF+12.0);
-      milePosts.push({z,x, val: nextMile});
-      nextMile += 500;
-      mileSide *= -1;
-    }
-    for(const p of milePosts){
-      if(p.z < camZ - 40){
-        p.z = nextMile;
-        p.x = (mileSide)*(ROAD_HALF+12.0);
-        p.val = nextMile;
-        nextMile += 500;
-        mileSide *= -1;
-      }
-    }
-  }
-
-  // 更新/渲染
   let last=performance.now();
   function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
 
@@ -655,7 +593,6 @@ void main(){
     }
 
     maintainScenery(distance);
-    ensureMilePosts(distance);
 
     spdEl.textContent=Math.round(speed*3.6);
     distEl.textContent=Math.round(distance);
@@ -766,15 +703,6 @@ void main(){
     m=App.Mat4.identity(); m=App.Mat4.translate(m,[carX,carY,camZ+carZ]); m=App.Mat4.rotateY(m,carYaw); m=App.Mat4.rotateZ(m,carRoll);
     gl.uniformMatrix4fv(uni.uModel,false,m); gl.uniformMatrix3fv(uni.uNormalMat,false, App.Mat4.normalFromMat4(m));
     carMesh.bind(); carMesh.draw();
-
-    // 里程碑
-    for(const p of milePosts){
-      m=App.Mat4.identity(); m=App.Mat4.translate(m,[p.x,0,p.z]);
-      gl.uniform1f(uni.uUnlit,0.0); gl.uniform1f(uni.uAlpha,1.0);
-      gl.uniformMatrix4fv(uni.uModel,false,m); gl.uniformMatrix3fv(uni.uNormalMat,false, App.Mat4.normalFromMat4(m));
-      mileMesh.bind(); mileMesh.draw();
-      drawMileText(p.val, m);
-    }
   }
 
   function loop(){ if(!running||paused) return; const now=performance.now(); const dt=Math.min(0.033,(now-last)/1000); last=now; update(dt); draw(); requestAnimationFrame(loop); }
