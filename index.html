@@ -28,6 +28,7 @@
   .gameover .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; text-align:left; margin-top:8px; }
   .gameover .scores{ margin-top:12px; text-align:left; }
   .gameover input{ width:100%; padding:10px 12px; border-radius:10px; border:none; outline:none; background:rgba(255,255,255,.08); color:var(--text); font-weight:700; }
+  .ad-slot{ display:none; min-height:0; }
 
   @media (max-width:640px){ .hud{ font-size:13px; } .gameover .grid{ grid-template-columns:1fr; } }
 </style>
@@ -70,6 +71,7 @@
     <button class="btn" id="muteBtn">声音：开</button>
     <button class="btn" id="clearLB">清空榜单</button>
   </div>
+  <div class="ad-slot" id="ad-start" data-placement="start"></div>
 </div>
 
 <div class="pausemenu hidden" id="pauseMenu">
@@ -95,6 +97,7 @@
     <button class="btn" id="submitScore" style="background:linear-gradient(135deg,#ffd400,#ff9900);color:black;font-weight:900;">提交成绩</button>
     <button class="btn" id="playAgain">再来一局</button>
   </div>
+  <div class="ad-slot" id="ad-gameover" data-placement="gameover"></div>
   <div class="scores" id="lbBox"></div>
 </div>
 
