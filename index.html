@@ -369,12 +369,14 @@ void main(){
   // 赛道物件
   const obstacles=[], coins=[], trees=[];
   const OBSTACLE_STEP = 60; // 障碍密度减半
+  const START_SAFE_DISTANCE = 70;
   function rand(a,b){return a+Math.random()*(b-a);} function choice(a){return a[Math.floor(Math.random()*a.length)];}
   function spawnObstacle(z){ const v=obstacleVariants[Math.floor(Math.random()*obstacleVariants.length)](); return { z, x: rand(-ROAD_HALF+0.9, ROAD_HALF-0.9), hit:false, mesh:v.mesh, hx:v.hx||0.8, hy:v.hy||0.6, hz:v.hz||1.2 }; }
+  function seedObstacles(startZ=START_SAFE_DISTANCE){ for(let z=startZ; z<TRACK_LEN; z+=OBSTACLE_STEP) obstacles.push(spawnObstacle(z+rand(-4,4))); }
   function spawnCoin(z){return {z, x: choice([-5,-4,-3,-2,-1,0,1,2,3,4,5]), taken:false, spin:0};}
   function spawnTree(z){const side=Math.random()<0.5?-1:1;return {z, x: side*(ROAD_HALF+rand(2.5,6.0)), s: rand(0.95,1.25)};}
 
-  for(let z=10; z<TRACK_LEN; z+=OBSTACLE_STEP) obstacles.push(spawnObstacle(z+rand(-4,4)));
+  seedObstacles();
   for(let z=8; z<TRACK_LEN; z+=11) coins.push(spawnCoin(z+rand(-2,2)));
   for(let z=6; z<TRACK_LEN+40; z+=12) trees.push(spawnTree(z+rand(-2,2)));
   initCityStrips(0);
@@ -746,7 +748,7 @@ void main(){
   function resetGame(){
     distance=0; score=0; coinsCount=0; topSpeed=0; hp=10; speed=22; carX=0; lateralVel=0;
     obstacles.length=0; coins.length=0; trees.length=0; buildings.length=0; nextZLeft=20; nextZRight=28;
-    for(let z=10; z<TRACK_LEN; z+=OBSTACLE_STEP) obstacles.push(spawnObstacle(z+rand(-4,4)));
+    seedObstacles();
     for(let z=8; z<TRACK_LEN; z+=11) coins.push(spawnCoin(z+rand(-2,2)));
     for(let z=6; z<TRACK_LEN+40; z+=12) trees.push(spawnTree(z+rand(-2,2)));
     initCityStrips(0);

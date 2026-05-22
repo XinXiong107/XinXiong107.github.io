@@ -1,4 +1,4 @@
-const CACHE_NAME = 'racer-site-v2';
+const CACHE_NAME = 'racer-site-v3';
 const CORE_ASSETS = [
   '/',
   '/index.html',
