@@ -67,7 +67,7 @@
   <div class="row">
     <button class="btn" id="startBtn" style="background:linear-gradient(135deg,#00e0ff,#00ffa3);color:black;font-weight:900;">开始游戏</button>
     <button class="btn" id="qualityBtn">画质：高</button>
-    <button class="btn" id="muteBtn">音效：开</button>
+    <button class="btn" id="muteBtn">声音：开</button>
     <button class="btn" id="clearLB">清空榜单</button>
   </div>
 </div>
@@ -392,6 +392,25 @@ void main(){
   };
   const audio=new App.AudioEngine();
 
+  App.MusicPlayer = class {
+    constructor(src,{volume=0.4,loop=true}={}){
+      this.audio=new Audio(src); this.audio.preload='auto'; this.audio.loop=loop; this.audio.volume=volume;
+      this.baseVol=volume; this.enabled=true;
+    }
+    play(restart=false){ if(!this.enabled) return; if(restart) this.audio.currentTime=0; this.audio.volume=this.baseVol; const p=this.audio.play(); if(p&&p.catch) p.catch(()=>{}); }
+    pause(){ this.audio.pause(); }
+    stop(){ this.audio.pause(); this.audio.currentTime=0; }
+    setEnabled(on){ this.enabled=on; if(on){ this.audio.volume=this.baseVol; } else { this.pause(); } }
+    dispose(){ try{ this.stop(); this.audio.src=''; }catch(e){} }
+  };
+  const music={
+    start:new App.MusicPlayer('../assets/audio/start.mp3',{volume:0.36,loop:true}),
+    race:new App.MusicPlayer('../assets/audio/race.mp3',{volume:0.42,loop:true})
+  };
+  function playStartMusic(restart=false){ if(audioEnabled && !running){ music.race.stop(); music.start.play(restart); } }
+  function playRaceMusic(restart=false){ if(audioEnabled){ music.start.stop(); music.race.play(restart); } }
+  function pauseMusic(){ music.start.pause(); music.race.pause(); }
+
   // 游戏状态与动态最低速
   const input={left:false,right:false,accel:false,brake:false};
   let running=false, paused=false;
@@ -463,12 +482,12 @@ void main(){
 
   // 音乐按钮
   let audioEnabled=true;
-  function syncAudioEnabled(){ audio.setEnabled(audioEnabled); }
+  function syncAudioEnabled(){ audio.setEnabled(audioEnabled); music.start.setEnabled(audioEnabled); music.race.setEnabled(audioEnabled); }
   muteBtn.addEventListener('click',()=>{
     audioEnabled=!audioEnabled;
     syncAudioEnabled();
-    
-    muteBtn.textContent='音效：'+(audioEnabled?'开':'关');
+    if(audioEnabled){ if(running&&!paused) playRaceMusic(); else playStartMusic(); }
+    muteBtn.textContent='声音：'+(audioEnabled?'开':'关');
   });
 
   // 开始/暂停/结束
@@ -481,25 +500,25 @@ void main(){
     resize();
   });
   startBtn.addEventListener('click', async()=>{
-    
+    music.start.stop();
     await audio.init();
     startHint.classList.add('hidden');
     renderLB();
     resume();
-    
+    playRaceMusic(true);
   });
   resumeBtn.addEventListener('click',()=>{ hidePause(); togglePause(true); });
   quitBtn.addEventListener('click',()=>{ hidePause(); endGame(); });
 
   submitScore.addEventListener('click',()=>{ const entry={name:(nameInput.value||'玩家').slice(0,16), score, distance, topSpeed, coins:coinsCount}; const arr=loadScores(); arr.push(entry); arr.sort((a,b)=>b.score-a.score); saveScores(arr.slice(0,5)); renderLB(); alert('已提交！'); });
-  playAgain.addEventListener('click',()=>{ gameover.classList.add('hidden'); resetGame(); resume();  });
+  playAgain.addEventListener('click',()=>{ gameover.classList.add('hidden'); music.start.stop(); resetGame(); resume(); playRaceMusic(true); });
 
-  function showPause(){ pauseMenu.classList.remove('hidden'); audio.pauseAudio(); }
-  function hidePause(){ pauseMenu.classList.add('hidden'); audio.resumeAudio(); }
+  function showPause(){ pauseMenu.classList.remove('hidden'); audio.pauseAudio(); music.race.pause(); }
+  function hidePause(){ pauseMenu.classList.add('hidden'); audio.resumeAudio(); if(running&&!paused) playRaceMusic(); }
   function togglePause(forceResume=false){ if(!running && !paused) return; if(forceResume){ paused=false; pauseBtn.textContent='暂停'; hidePause(); last=performance.now(); requestAnimationFrame(loop); return; } paused=!paused; pauseBtn.textContent=paused?'继续':'暂停'; if(paused) showPause(); else { hidePause(); last=performance.now(); requestAnimationFrame(loop); } }
   function endGame(){
     paused=true; running=false; audio.pauseAudio();
-    
+    music.race.stop(); playStartMusic(true);
     goDist.textContent=Math.round(distance); goScore.textContent=Math.round(score); goTopSpd.textContent=Math.round(topSpeed); goCoins.textContent=coinsCount;
     nameInput.value=nameInput.value||'玩家'; renderLB(); gameover.classList.remove('hidden');
   }
@@ -732,10 +751,14 @@ void main(){
   }
 
   // 启动
+  const unlockStartMusic=()=>playStartMusic();
+  window.addEventListener('pointerdown', unlockStartMusic, {once:true});
+  window.addEventListener('keydown', unlockStartMusic, {once:true});
   renderLB(); resize(); draw();
+  playStartMusic();
 
   App.dispose = () => {
-    try{ audio.dispose(); window.removeEventListener('resize', resize); }catch(e){}
+    try{ music.start.dispose(); music.race.dispose(); audio.dispose(); window.removeEventListener('resize', resize); }catch(e){}
   };
   window.NEON_RACER_V532_HOTFIX = App;
 })();
