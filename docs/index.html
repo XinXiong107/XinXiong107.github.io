@@ -616,7 +616,8 @@ void main(){
     gl.uniform3fv(uni.uLightDir,new Float32Array([-0.35,0.9,0.15]));
     gl.uniform3fv(uni.uFogColor,new Float32Array(fog));
     gl.uniform3fv(uni.uCamPos,new Float32Array(camPos));
-    gl.uniform1f(uni.uFogDensity, 0.015 + (speed/SPEED_MAX)*0.01);
+    const sceneFogDensity = 0.015 + (speed/SPEED_MAX)*0.01;
+    gl.uniform1f(uni.uFogDensity, sceneFogDensity);
     gl.uniform1f(uni.uTime,t);
 
     // 外地
@@ -677,11 +678,13 @@ void main(){
     }
 
     // 障碍
+    gl.uniform1f(uni.uFogDensity, Math.max(0.006, sceneFogDensity * 0.45));
     for(const o of obstacles){
       m=App.Mat4.identity(); m=App.Mat4.translate(m,[o.x,0,o.z]);
       gl.uniformMatrix4fv(uni.uModel,false,m); gl.uniformMatrix3fv(uni.uNormalMat,false, App.Mat4.normalFromMat4(m));
       o.mesh.bind(); o.mesh.draw();
     }
+    gl.uniform1f(uni.uFogDensity, sceneFogDensity);
 
     // 金币与光晕
     gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
