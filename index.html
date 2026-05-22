@@ -1,8 +1,4 @@
 <!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
 <title>新源3D赛车 · V5.3.2 热修复（修正 arr.length 与 input.right）</title>
 <style>
   :root { color-scheme: light; --ui-bg: rgba(0,0,0,0.35); --ui-bg-strong: rgba(0,0,0,0.55); --text:#f2f6ff; }
@@ -398,10 +394,10 @@ void main(){
 
   App.MusicPlayer = class {
     constructor(src,{volume=0.4,loop=true}={}){
-      this.audio=new Audio(src); this.audio.preload='auto'; this.audio.loop=loop; this.audio.volume=volume;
+      this.audio=new Audio(src); this.audio.preload='none'; this.audio.loop=loop; this.audio.volume=volume;
       this.baseVol=volume; this.enabled=true;
     }
-    play(restart=false){ if(!this.enabled) return; if(restart) this.audio.currentTime=0; this.audio.volume=this.baseVol; const p=this.audio.play(); if(p&&p.catch) p.catch(()=>{}); }
+    play(restart=false){ if(!this.enabled) return; if(restart) this.audio.currentTime=0; this.audio.volume=this.baseVol; this.audio.load(); const p=this.audio.play(); if(p&&p.catch) p.catch(()=>{}); }
     pause(){ this.audio.pause(); }
     stop(){ this.audio.pause(); this.audio.currentTime=0; }
     setEnabled(on){ this.enabled=on; if(on){ this.audio.volume=this.baseVol; } else { this.pause(); } }
@@ -758,7 +754,9 @@ void main(){
   window.addEventListener('pointerdown', unlockStartMusic, {once:true});
   window.addEventListener('keydown', unlockStartMusic, {once:true});
   renderLB(); resize(); draw();
-  playStartMusic();
+  if('serviceWorker' in navigator && location.protocol !== 'file:'){
+    window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+  }
 
   App.dispose = () => {
     try{ music.start.dispose(); music.race.dispose(); audio.dispose(); window.removeEventListener('resize', resize); }catch(e){}
