@@ -42,7 +42,7 @@
     <span><span class="tag">距离</span> <span id="dist">0</span> m</span>
     <span><span class="tag">得分</span> <span id="score">0</span></span>
     <span><span class="tag">金币</span> <span id="coins">0</span></span>
-    <span><span class="tag">生命</span> <span id="hp">10</span></span>
+    <span><span class="tag">生命</span> <span id="hp">5</span></span>
   </div>
   <div class="right">
     <button class="btn" id="pauseBtn">暂停</button>
@@ -368,7 +368,7 @@ void main(){
 
   // 赛道物件
   const obstacles=[], coins=[], trees=[];
-  const OBSTACLE_STEP = 60; // 障碍密度减半
+  const OBSTACLE_STEP = 120; // Wider obstacle spacing for mobile play
   const START_SAFE_DISTANCE = 70;
   function rand(a,b){return a+Math.random()*(b-a);} function choice(a){return a[Math.floor(Math.random()*a.length)];}
   function spawnObstacle(z){ const v=obstacleVariants[Math.floor(Math.random()*obstacleVariants.length)](); return { z, x: rand(-ROAD_HALF+0.9, ROAD_HALF-0.9), hit:false, mesh:v.mesh, hx:v.hx||0.8, hy:v.hy||0.6, hz:v.hz||1.2 }; }
@@ -430,7 +430,7 @@ void main(){
   const SPEED_FLOOR_STEP_KMH = 10;
   const SPEED_FLOOR_EVERY_M  = 100;
 
-  let distance=0, score=0, coinsCount=0, hp=10;
+  let distance=0, score=0, coinsCount=0, hp=5;
 
   // UI
   const spdEl=document.getElementById('spd'), distEl=document.getElementById('dist'), scoreEl=document.getElementById('score'), coinsEl=document.getElementById('coins'), hpEl=document.getElementById('hp');
@@ -708,7 +708,7 @@ void main(){
   function loop(){ if(!running||paused) return; const now=performance.now(); const dt=Math.min(0.033,(now-last)/1000); last=now; update(dt); draw(); requestAnimationFrame(loop); }
   function resume(){ if(running&&paused){ togglePause(true); return; } running=true; paused=false; audio.resumeAudio(); last=performance.now(); requestAnimationFrame(loop); }
   function resetGame(){
-    distance=0; score=0; coinsCount=0; topSpeed=0; hp=10; speed=22; carX=0; lateralVel=0;
+    distance=0; score=0; coinsCount=0; topSpeed=0; hp=5; speed=22; carX=0; lateralVel=0;
     obstacles.length=0; coins.length=0; trees.length=0; buildings.length=0; nextZLeft=20; nextZRight=28;
     seedObstacles();
     for(let z=8; z<TRACK_LEN; z+=11) coins.push(spawnCoin(z+rand(-2,2)));
