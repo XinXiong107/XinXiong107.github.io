@@ -402,7 +402,7 @@ void main(){
       this.audio=new Audio(src); this.audio.preload='auto'; this.audio.loop=loop; this.audio.volume=volume;
       this.baseVol=volume; this.enabled=true;
     }
-    play(restart=false){ if(!this.enabled) return; if(restart) this.audio.currentTime=0; this.audio.volume=this.baseVol; this.audio.load(); const p=this.audio.play(); if(p&&p.catch) p.catch(()=>{}); }
+    play(restart=false){ if(!this.enabled) return; if(restart) this.audio.currentTime=0; this.audio.volume=this.baseVol; const p=this.audio.play(); if(p&&p.catch) p.catch(()=>{}); }
     pause(){ this.audio.pause(); }
     stop(){ this.audio.pause(); this.audio.currentTime=0; }
     setEnabled(on){ this.enabled=on; if(on){ this.audio.volume=this.baseVol; } else { this.pause(); } }
