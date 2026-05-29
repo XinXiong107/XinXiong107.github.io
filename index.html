@@ -561,8 +561,8 @@ void main(){
     topSpeed=Math.max(topSpeed,speed*3.6);
 
     const steer= -((input.right?1:0)-(input.left?1:0));
-    lateralVel += (steer*22.0) * dt;
-    lateralVel *= (1.0 - dt*2.0);
+    lateralVel += (steer*40.0) * dt;
+    lateralVel *= (1.0 - dt*1.2);
     carX += lateralVel * dt;
 
     const maxX=ROAD_HALF-0.3;
