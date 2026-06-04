@@ -1,5 +1,5 @@
 <!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>新源3D赛车 · V5.3.2 热修复（修正 arr.length 与 input.right）</title>
+<title>新源3D赛车 · V5.4 画面增强版</title>
 <style>
   :root { color-scheme: light; --ui-bg: rgba(0,0,0,0.35); --ui-bg-strong: rgba(0,0,0,0.55); --text:#f2f6ff; }
   html, body { margin:0; height:100%; overflow:hidden; background:#9fd0ff;
@@ -149,6 +149,7 @@ uniform vec3 uFogColor,uCamPos;
 uniform float uFogDensity;
 uniform float uUnlit,uAlpha,uDash,uDashScale,uDashSpeed,uTime;
 uniform float uRoadMode;
+uniform float uGroundMode;
 
 float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
 float noise(vec2 p){ vec2 i=floor(p), f=fract(p); float a=hash(i); float b=hash(i+vec2(1.0,0.0)); float c=hash(i+vec2(0.0,1.0)); float d=hash(i+vec2(1.0,1.0)); vec2 u=f*f*(3.0-2.0*f); return mix(mix(a,b,u.x), mix(c,d,u.x), u.y); }
@@ -165,23 +166,72 @@ void main(){
   if(uRoadMode > 0.5){
     float x = vWorldPos.x;
     float z = vWorldPos.z;
-    vec3 asphaltBase = vec3(0.15,0.16,0.18);
+    vec3 asphaltBase = vec3(0.08,0.08,0.10);
     float g = fbm(vec2(x*6.0, z*0.6));
     float grains = smoothstep(0.3,0.9,g);
-    vec3 asphalt = asphaltBase + vec3(grains)*0.04;
-    float lanesNoise = fbm(vec2(z*1.8, 0.0)) * 0.05;
-    float streaks = 0.03*sin(z*20.0) + lanesNoise;
-    float centerPolish = exp(-pow(x/2.8,2.0))*0.04;
+    vec3 asphalt = asphaltBase + vec3(grains)*0.05;
+    float lanesNoise = fbm(vec2(z*1.8, 0.0)) * 0.04;
+    float streaks = 0.025*sin(z*20.0) + lanesNoise;
+    float centerPolish = exp(-pow(x/2.8,2.0))*0.03;
     float crackS = noise(vec2(x*8.0, z*0.8));
-    float cracks = smoothstep(0.85,0.94, crackS) * 0.06;
+    float cracks = smoothstep(0.85,0.94, crackS) * 0.05;
     float edge = smoothstep(4.5, 6.2, abs(x));
     vec3 edgeTint = vec3(0.02,0.02,0.02);
     asphalt += mix(vec3(0.0), edgeTint, edge);
     vec3 surf = asphalt + streaks + centerPolish - cracks;
     float ndotl = max(dot(normalize(vNormal), normalize(vec3(-0.3,0.9,0.2))), 0.0);
     float spark = pow(ndotl, 24.0) * 0.04 * fbm(vec2(x*12.0, z*1.2));
-    vec3 lit = surf * (0.55 + 0.7*lightTerm) + spark;
-    vec3 col = mix(uFogColor, lit, fog);
+    vec3 lit = surf * (0.25 + 0.45*lightTerm) + spark;
+    gl_FragColor = vec4(lit, alpha);
+    return;
+  }
+
+  // === 砖石人行道 ===
+  if(uGroundMode > 8.0 && uGroundMode < 12.0){
+    float x = vWorldPos.x;
+    float z = vWorldPos.z;
+    float brickW = 0.6;
+    float brickH = 0.3;
+    float row = floor(z / brickH);
+    float offset = mod(row, 2.0) * brickW * 0.5;
+    float bx = mod(x + offset, brickW);
+    float bz = mod(z, brickH);
+    float gapW = 0.06;
+    float isGap = max(step(bx, gapW), step(bz, gapW));
+    vec3 brick = vec3(0.30, 0.28, 0.25);
+    float var = hash(vec2(floor((x + offset) / brickW), row)) * 0.10 - 0.05;
+    brick += vec3(var, var*0.8, var*0.6);
+    float dirt = fbm(vec2(x*1.5, z*0.4)) * 0.06;
+    brick -= vec3(dirt*0.5, dirt*0.3, dirt*0.2);
+    vec3 mortar = vec3(0.10, 0.09, 0.08);
+    vec3 surf = mix(brick, mortar, isGap);
+    vec3 lit = surf * (0.18 + 0.28*lightTerm);
+    gl_FragColor = vec4(lit, alpha);
+    return;
+  }
+
+  // === 混凝土路肩 ===
+  if(uGroundMode > 18.0 && uGroundMode < 22.0){
+    float x = vWorldPos.x;
+    float z = vWorldPos.z;
+    vec3 base = vec3(0.32, 0.30, 0.27);
+    float grain = noise(vec2(x*25.0, z*25.0)) * 0.12;
+    float streaks = noise(vec2(x*2.0, z*0.3)) * 0.06;
+    vec3 surf = base - vec3(grain) + vec3(streaks*0.5);
+    vec3 lit = surf * (0.18 + 0.28*lightTerm);
+    gl_FragColor = vec4(lit, alpha);
+    return;
+  }
+
+  // === 护栏红白条纹 ===
+  if(uGroundMode > 28.0 && uGroundMode < 32.0){
+    float z = vWorldPos.z;
+    float stripe = step(0.5, fract(z / 1.5));
+    vec3 red = vec3(0.82, 0.12, 0.08);
+    vec3 white = vec3(0.90, 0.90, 0.88);
+    vec3 surf = mix(red, white, stripe) + noise(vec2(z*3.0, 0.0))*0.04;
+    vec3 lit = surf * (0.55 + 0.7*lightTerm);
+    vec3 col = mix(uFogColor, lit, fog*0.3);
     gl_FragColor = vec4(col, alpha);
     return;
   }
@@ -199,7 +249,7 @@ void main(){
   const prog=gl.createProgram(); gl.attachShader(prog,sh(gl.VERTEX_SHADER,VS)); gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FS)); gl.linkProgram(prog); if(!gl.getProgramParameter(prog,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog)||'link error');
   gl.useProgram(prog);
   const U=n=>gl.getUniformLocation(prog,n);
-  const uni={uProjection:U('uProjection'),uView:U('uView'),uModel:U('uModel'),uNormalMat:U('uNormalMat'),uLightDir:U('uLightDir'),uFogColor:U('uFogColor'),uCamPos:U('uCamPos'),uFogDensity:U('uFogDensity'),uVertexAO:U('uVertexAO'),uUnlit:U('uUnlit'),uAlpha:U('uAlpha'),uDash:U('uDash'),uDashScale:U('uDashScale'),uDashSpeed:U('uDashSpeed'),uTime:U('uTime'),uRoadMode:U('uRoadMode')};
+  const uni={uProjection:U('uProjection'),uView:U('uView'),uModel:U('uModel'),uNormalMat:U('uNormalMat'),uLightDir:U('uLightDir'),uFogColor:U('uFogColor'),uCamPos:U('uCamPos'),uFogDensity:U('uFogDensity'),uVertexAO:U('uVertexAO'),uUnlit:U('uUnlit'),uAlpha:U('uAlpha'),uDash:U('uDash'),uDashScale:U('uDashScale'),uDashSpeed:U('uDashSpeed'),uTime:U('uTime'),uRoadMode:U('uRoadMode'),uGroundMode:U('uGroundMode')};
   gl.enable(gl.DEPTH_TEST); gl.enable(gl.CULL_FACE); gl.cullFace(gl.BACK);
 
   function createMesh(p,n,c,i,usage){
@@ -267,7 +317,7 @@ void main(){
     const i=new Uint16Array([0,1,2, 0,2,3]);
     return createMesh(p,n,c,i);
   }
-  const outerGround=makeQuadStrip(70,0.0,-10,TRACK_LEN+20,[0.86,0.90,0.94]);
+  const outerGround=makeQuadStrip(70,0.0,-10,TRACK_LEN+20,[0.30,0.28,0.25]);
   const roadMesh   =makeQuadStrip(ROAD_HALF,0.001,0,TRACK_LEN,[0.20,0.20,0.22]);
   const shoulder   =makeQuadStrip(ROAD_HALF+1.6,0.003,0,TRACK_LEN,[0.82,0.85,0.88]);
   const centerStrip=makeQuadStrip(0.16,0.004,0,TRACK_LEN,[1.0,0.97,0.88]);
@@ -275,6 +325,8 @@ void main(){
   const sideLineLeft =makeQuadStrip(0.06,0.004,0,TRACK_LEN,sideLineColor);
   const sideLineRight=makeQuadStrip(0.06,0.004,0,TRACK_LEN,sideLineColor);
   const guardBody=buildAgg([a=>addBox(a,0.25,0.8,TRACK_LEN+2,[0.55,0.55,0.6])]);
+  const edgeLineLeft =makeQuadStrip(0.12,0.005,0,TRACK_LEN,[0.92,0.78,0.08]);
+  const edgeLineRight=makeQuadStrip(0.12,0.005,0,TRACK_LEN,[0.92,0.78,0.08]);
 
   // 复用网格
   const boxBlue  = buildAgg([a=>addBox(a,1,1,1,[0.10,0.45,0.95])]);
@@ -620,19 +672,23 @@ void main(){
     gl.uniform1f(uni.uFogDensity, sceneFogDensity);
     gl.uniform1f(uni.uTime,t);
 
-    // 外地
-    gl.uniform1f(uni.uUnlit,0.0); gl.uniform1f(uni.uAlpha,1.0); gl.uniform1f(uni.uDash,0.0); gl.uniform1f(uni.uRoadMode,0.0);
+    // === 地面层：关闭深度测试 ===
+    gl.disable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE);
+
+    // 外地 - 砖石
+    gl.uniform1f(uni.uUnlit,0.0); gl.uniform1f(uni.uAlpha,1.0); gl.uniform1f(uni.uDash,0.0); gl.uniform1f(uni.uRoadMode,0.0); gl.uniform1f(uni.uGroundMode,10.0);
     let m=App.Mat4.identity(); m=App.Mat4.translate(m,[0,0,camZ]); gl.uniform1f(uni.uVertexAO,0.03);
     gl.uniformMatrix4fv(uni.uModel,false,m); gl.uniformMatrix3fv(uni.uNormalMat,false, App.Mat4.normalFromMat4(m));
     outerGround.bind(); outerGround.draw();
 
-    // 路肩
+    // 路肩 - 混凝土
+    gl.uniform1f(uni.uGroundMode,20.0);
     m=App.Mat4.identity(); m=App.Mat4.translate(m,[0,0,camZ]);
     gl.uniformMatrix4fv(uni.uModel,false,m); gl.uniformMatrix3fv(uni.uNormalMat,false, App.Mat4.normalFromMat4(m));
     shoulder.bind(); shoulder.draw();
 
-    // 路面
-    gl.uniform1f(uni.uRoadMode,1.0); gl.uniform1f(uni.uUnlit,0.0); gl.uniform1f(uni.uDash,0.0);
+    // 路面 - 沥青
+    gl.uniform1f(uni.uRoadMode,1.0); gl.uniform1f(uni.uGroundMode,0.0); gl.uniform1f(uni.uUnlit,0.0); gl.uniform1f(uni.uDash,0.0);
     m=App.Mat4.identity(); m=App.Mat4.translate(m,[0,0,camZ]); gl.uniform1f(uni.uVertexAO,0.02);
     gl.uniformMatrix4fv(uni.uModel,false,m); gl.uniformMatrix3fv(uni.uNormalMat,false, App.Mat4.normalFromMat4(m));
     roadMesh.bind(); roadMesh.draw();
@@ -645,7 +701,7 @@ void main(){
     centerStrip.bind(); centerStrip.draw();
     gl.uniform1f(uni.uDash,0.0);
 
-    // 两侧实线
+    // 两侧白色实线
     gl.uniform1f(uni.uUnlit,1.0); gl.uniform1f(uni.uAlpha,0.85);
     m=App.Mat4.identity(); m=App.Mat4.translate(m,[-(ROAD_HALF-0.3),0,camZ]);
     gl.uniformMatrix4fv(uni.uModel,false,m); gl.uniformMatrix3fv(uni.uNormalMat,false, App.Mat4.normalFromMat4(m));
@@ -654,14 +710,27 @@ void main(){
     gl.uniformMatrix4fv(uni.uModel,false,m); gl.uniformMatrix3fv(uni.uNormalMat,false, App.Mat4.normalFromMat4(m));
     sideLineRight.bind(); sideLineRight.draw();
 
-    // 护栏
-    gl.uniform1f(uni.uUnlit,0.0); gl.uniform1f(uni.uAlpha,1.0);
+    // 黄色车道边线
+    gl.uniform1f(uni.uUnlit,1.0); gl.uniform1f(uni.uAlpha,0.92);
+    m=App.Mat4.identity(); m=App.Mat4.translate(m,[-(ROAD_HALF-0.9),0,camZ]);
+    gl.uniformMatrix4fv(uni.uModel,false,m); gl.uniformMatrix3fv(uni.uNormalMat,false, App.Mat4.normalFromMat4(m));
+    edgeLineLeft.bind(); edgeLineLeft.draw();
+    m=App.Mat4.identity(); m=App.Mat4.translate(m,[(ROAD_HALF-0.9),0,camZ]);
+    gl.uniformMatrix4fv(uni.uModel,false,m); gl.uniformMatrix3fv(uni.uNormalMat,false, App.Mat4.normalFromMat4(m));
+    edgeLineRight.bind(); edgeLineRight.draw();
+
+    // === 3D物体：恢复深度测试和面剔除 ===
+    gl.enable(gl.DEPTH_TEST); gl.enable(gl.CULL_FACE);
+
+    // 护栏 - 红白条纹
+    gl.uniform1f(uni.uUnlit,0.0); gl.uniform1f(uni.uAlpha,1.0); gl.uniform1f(uni.uGroundMode,30.0);
     m=App.Mat4.identity(); m=App.Mat4.translate(m,[ROAD_HALF+0.25,0.4,camZ]);
     gl.uniformMatrix4fv(uni.uModel,false,m); gl.uniformMatrix3fv(uni.uNormalMat,false, App.Mat4.normalFromMat4(m));
     guardBody.bind(); guardBody.draw();
     m=App.Mat4.identity(); m=App.Mat4.translate(m,[-(ROAD_HALF+0.25),0.4,camZ]);
     gl.uniformMatrix4fv(uni.uModel,false,m); gl.uniformMatrix3fv(uni.uNormalMat,false, App.Mat4.normalFromMat4(m));
     guardBody.bind(); guardBody.draw();
+    gl.uniform1f(uni.uGroundMode,0.0);
 
     // 建筑
     for(const b of buildings){
